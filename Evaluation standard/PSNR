@@ -1,0 +1,22 @@
+import cv2
+import math
+class PeakSNRComp(object):
+    def __init__(self,w,h):
+        self.h = h
+        self.w = w
+        self.div = 148.14 # greater then  10.0 * math.log10((255.0 * 255.0) / 1e-10)
+    def run(self, imgx, imgy):
+        #https://docs.opencv.org/2.4/doc/tutorials/highgui/video-input-psnr-ssim/video-input-psnr-ssim.html
+        imgx = cv2.resize(imgx, (self.w, self.h), interpolation=self.rsz)
+        imgy = cv2.resize(imgy, (self.w, self.h), interpolation=self.rsz)#重置图片大小256*256
+        diff = cv2.absdiff(imgx,imgy)#x，y两个图像的差值输出到diff图像中
+        sqr = cv2.multiply(diff,diff,dtype=cv2.CV_32F)#差值图像diff的平方
+        #todo:
+        sse = sum(sum(sum(sqr)))
+        mse = 1e-10
+        if sse <= 1e-10:
+            mse = 1e-10
+        else:
+            mse = sse / (3.0 * self.w * self.h)
+        res = 10.0 * math.log10((255.0 * 255.0) / mse) / self.div
+        return res
